@@ -9,15 +9,16 @@ This code provides a straightforward way to apply the ADI scheme to a specific h
 How to use:
 
 Install required libraries: No external libraries are necessary for this code to run.
-Edit parameters: Modify the following variables in the adi_scheme.py file to match your specific problem:
-initial_temp: Initial temperature distribution inside the domain (excluding boundaries).
+Edit parameters: Modify the following variables in the adi_scheme.py file to match your specific problem: initial_temp: Initial temperature distribution inside the domain (excluding boundaries).
 r_temp, l_temp, top_temp, bottom_temp: Boundary temperatures at right, left, top, and bottom, respectively.
 time_step: Time step for the numerical solution.
 step_size: Spatial step size for the grid discretization.
 length: Length of the domain in the spatial direction.
 time: Total simulation time.
 diffusivity: Thermal diffusivity of the material.
+
 Run the code: Execute the adi_scheme.py file. The output will be a list of temperature distributions at each time step, stored in the temp_over_time variable.
+
 Further notes:
 
 The code currently solves a specific case with fixed boundary conditions. It can be extended to handle more general scenarios by modifying the boundary condition calculations within the code.
