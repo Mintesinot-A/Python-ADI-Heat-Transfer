@@ -1,0 +1,56 @@
+import numpy as np
+
+
+def adi_scheme(initial_temp, r_temp, l_temp, top_temp, bottom_temp, time_step, step_size, length, time, diffusivity):
+    """
+    The alternating-direction implicit, or ADI, scheme provides a means for solving parabolic
+    equations in two spatial dimensions using tri-diagonal matrices.
+    The following inputs are an example of a specific case. Taken from Steven C. Chapra, Numerical methods for
+    engineers, Finite difference: Parabolic equations.
+    in_t = [[0, 0, 0, 0, 0], [75, 0, 0, 0, 50], [75, 0, 0, 0, 50], [75, 0, 0, 0, 50], [100, 100, 100, 100, 100]]
+    in_t is the initial temperature distribution, which includes the boundary temperatures.
+    time_step = 10 sec
+    step_size = 10 cm
+    length = 40 cm
+    time = 300 sec
+    diffusivity = 0.835 cm^2/s.#  diffusivity is the thermal diffusivity of the material.
+    """
+    # To create an array in_t with  initial conditions  and the boundary temperatures
+    x_n = int(length/step_size) if step_size != 0 else 0
+    in_t = np.zeros((x_n+1, x_n+1))
+    in_t[:, 0] = l_temp  # the first column is the left side boundary temps
+    in_t[:, -1] = r_temp  # the last column is the right side boundary temps
+    in_t[0, :] = bottom_temp  # the first row is the bottom side temps
+    in_t[-1, :] = top_temp  # the last row is the top side temps
+    in_t[1:-1, 1:-1] = initial_temp  # from second row to excluding the last row and second col to excluding last col
+    la = time_step*diffusivity/step_size**2 if step_size != 0 else 0
+    # To create a coefficient matrix a with numpy
+    main_diag = (2*(1+la))*np.eye(len(in_t)-2)
+    upper_diag = -la*np.eye(len(in_t)-2, k=1)
+    lower_diag = -la*np.eye(len(in_t)-2, k=-1)
+    a = main_diag + upper_diag + lower_diag
+    # use time iteration to find the temperature distribution in time
+    t = time_step
+    while t <= time:
+        b = np.empty(len(in_t)-2)
+        # for y implicit, to find the column temperatures
+        for i in range(1, x_n):
+            b[:] = la * in_t[1:-1, i - 1] + 2 * (1 - la) * in_t[1:-1, i] + la * in_t[1:-1, i + 1]
+            b[0] += la * in_t[0, i]
+            b[-1] += la * in_t[-1, i]
+            # interior_temp = in_t[1:-1, i], update in_t values (column) as left bound
+            in_t[1:-1, i] = np.linalg.solve(a, b)
+        # for x implicit, to find the row temperatures
+        for j in range(1, x_n):
+            b[:] = la * in_t[j - 1, 1:-1] + 2 * (1 - la) * in_t[j, 1:-1] + la * in_t[j + 1, 1:-1]
+            b[0] += la * in_t[j, 0]
+            b[-1] += la * in_t[j, 4]
+            # interior_temp = in_t[j, 1:-1], update in_t values (row) as lower bound
+            in_t[j, 1:-1] = np.linalg.solve(a, b)
+        in_t = in_t.astype(np.float64)
+        t += time_step
+    return in_t
+
+
+test_case = adi_scheme(0,50,75,100,0,10,10,40,300,0.835)
+print(test_case)
